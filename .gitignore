@@ -120,9 +120,11 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+
+venv
 .venv/
 .venv3.12/
+.env
 env/
 ENV/
 env.bak/
@@ -173,3 +175,4 @@ cython_debug/
 # Gigachat
 .llm-cache/
 .llm-cache/*
+AI-daily.drawio
