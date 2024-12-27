@@ -1,8 +1,9 @@
-from typing import TypedDict, List, Optional
+from operator import add
+from typing import TypedDict, List, Optional, Annotated
 
 
-class AgentState(TypedDict):
-    dialogue: Optional[List[str]]
+class DailyState(TypedDict):
+    dialogue: Annotated[List[str], add]
+    complete_speakers: Annotated[List[str], add]
     next_speaker: Optional[str]
-    members: Optional[List[str]]
-    team_description: Optional[List[str]]
+    facilitator: Optional[str]

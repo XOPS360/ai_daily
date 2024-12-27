@@ -1,12 +1,17 @@
+import json
+from pathlib import Path
 from logging import Logger
 from functools import lru_cache
 
+import pyttsx3
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables.config import RunnableConfig
 from langchain_gigachat.chat_models.gigachat import GigaChat
 from langchain_core.language_models.chat_models import BaseChatModel
 
 from ai_daily.utils.logger import get_logger
+from ai_daily.utils.constants import TEAM_DATA_PATH, DAILY_DATA_PATH
+from ai_daily.utils.models import Employee, PersonDayInfo
 
 
 @lru_cache(maxsize=4)
@@ -49,3 +54,57 @@ def get_logger_by_config(config: RunnableConfig) -> Logger:
     if logger is None:
         logger = get_logger()
     return logger
+
+
+@lru_cache(maxsize=1)
+def get_team_data(path: Path = TEAM_DATA_PATH) -> list[Employee]:
+    return [Employee(**employee) for employee in json.loads(path.read_text())]
+
+
+@lru_cache(maxsize=1)
+def get_all_full_names() -> list[str]:
+    return [employee.full_name for employee in get_team_data()]
+
+
+@lru_cache(maxsize=1)
+def get_all_speaker_full_names() -> list[str]:
+    return [daily_data.full_name for daily_data in get_daily_data()]
+
+
+@lru_cache(maxsize=20)
+def get_daily_data_by_full_name(full_name: str) -> PersonDayInfo:
+    for daily_data in get_daily_data():
+        if daily_data.full_name == full_name:
+            return daily_data
+    raise ValueError(f'{full_name} нет в списке на день')
+
+
+@lru_cache(maxsize=20)
+def get_employee_by_full_name(full_name: str) -> Employee:
+    for employee in get_team_data():
+        if employee.full_name == full_name:
+            return employee
+    raise ValueError(f'{full_name} нет в списке на день')
+
+
+@lru_cache(maxsize=1)
+def get_daily_data(path: Path = DAILY_DATA_PATH) -> list[PersonDayInfo]:
+    return [PersonDayInfo(**day_info) for day_info in json.loads(path.read_text())]
+
+
+@lru_cache(maxsize=1)
+def get_audio_engine() -> pyttsx3.Engine:
+    engine = pyttsx3.init()
+    engine.setProperty('rate', 150)
+    engine.setProperty('voice', 'ru')  # Выбираем русский голос
+    return engine
+
+
+def tts(text: str, person_name: str):
+    engine = get_audio_engine()
+    engine.say(text)
+    engine.runAndWait()
+
+
+def ttv(text: str, person_name: str):
+    pass
