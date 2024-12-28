@@ -1,4 +1,5 @@
 import json
+import subprocess
 from pathlib import Path
 from logging import Logger
 from functools import lru_cache
@@ -101,10 +102,50 @@ def get_audio_engine() -> pyttsx3.Engine:
 
 
 def tts(text: str, person_name: str):
-    engine = get_audio_engine()
-    engine.say(text)
-    engine.runAndWait()
+    # engine = get_audio_engine()
+    # engine.say(text)
+    # engine.runAndWait()
+    def tts(text: str, person_name: str):
 
+        speaker_wav = "Audio/" + person_name.replace(" ", "") + ".wav"
+        file_path = "Audio/" + person_name.replace(" ", "") + "_gen.wav"
+        python_executable = r"..\TTS\TTS\venv\Scripts\python.exe"
+        script_path = r"..\TTS\TTS\voice.py"
+
+        command = [
+            python_executable,
+            script_path,
+            "--text", text,
+            "--speaker_wav", speaker_wav,
+            "--file_path", file_path
+        ]
+
+        # Запускаем команду
+        try:
+            subprocess.run(command, check=True)
+            print("Команда выполнена успешно!")
+        except subprocess.CalledProcessError as e:
+            print(f"Ошибка выполнения команды: {e}")
+
+        # engine = get_audio_engine()
+        # engine.say(text)
+        # engine.runAndWait()
+
+        target_directory = r"..\Lipsing\Wav2lip"
+        command = (
+                r"..\venv\Scripts\python.exe inference.py " +
+                r"--checkpoint_path checkpoints\wav2lip.pth --face ../../ai_daily_main/Video/"
+                + person_name.replace(" ", "") +
+                r".mp4 " + r"--audio ../../ai_daily_main/Audio/"
+                + person_name.replace(" ","") +
+                r"_gen.wav " + r"--pads 0 0 10 0 --resize_factor 1 --nosmooth --outfile ../../ai_daily_main/Video/"
+                + person_name.replace(" ", "") + r"_gen.mp4" + r"--static 1"
+        )
+
+        try:
+            subprocess.run(command, cwd=target_directory, check=True, shell=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Ошибка при выполнении команды: {e}")
 
 def ttv(text: str, person_name: str):
     pass
